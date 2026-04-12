@@ -44,6 +44,21 @@ export const api = {
     return res.json();
   },
 
+  async fixAll(parsedJson: any, userType: string, scoreParameters: any[], suggestions: string[]) {
+    const res = await fetch(`${API_BASE}/api/fix-all`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        parsed_json: parsedJson, 
+        user_type: userType,
+        score_parameters: scoreParameters,
+        suggestions: suggestions,
+      }),
+    });
+    if (!res.ok) throw new Error("Fix all failed");
+    return res.json();
+  },
+
   async exportPDF(parsedJson: any) {
     const res = await fetch(`${API_BASE}/api/export-pdf`, {
       method: "POST",

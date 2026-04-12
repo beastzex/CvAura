@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import TiltCard from "@/components/TiltCard";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/lib/api";
-import { ExternalLink, Clock, Star, Video, Search } from "lucide-react";
+import { ExternalLink, Clock, Star, Video, Search, Briefcase, MapPin, ArrowUpRight } from "lucide-react";
 
 const RecommendationsTab: React.FC = () => {
   const { resumeData } = useApp();
@@ -170,7 +170,8 @@ const RecommendationsTab: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-foreground">{gap.skill}</span>
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                gap.priority === "High" ? "bg-red-500/10 text-red-500" :
+                gap.priority === "Critical" ? "bg-red-500/10 text-red-500" :
+                gap.priority === "High" ? "bg-orange-500/10 text-orange-500" :
                 gap.priority === "Medium" ? "bg-yellow-500/10 text-yellow-600" :
                 "bg-blue-500/10 text-blue-500"
               }`}>{gap.priority}</span>
@@ -189,8 +190,28 @@ const RecommendationsTab: React.FC = () => {
                 transition={{ delay: 0.3 + i * 0.06, duration: 0.5 }}
               />
             </div>
+            {gap.industry_demand && (
+              <p className="text-[10px] text-muted-foreground italic">{gap.industry_demand}</p>
+            )}
             <p className="text-xs text-muted-foreground">{gap.project_suggestion}</p>
             
+            {/* Learning Path */}
+            {gap.learning_path && (
+              <a
+                href={gap.learning_path.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-md bg-primary/5 border border-primary/20 p-2 text-xs hover:bg-primary/10 group"
+              >
+                <Star className="h-3 w-3 text-primary flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-foreground group-hover:text-primary font-medium">{gap.learning_path.title}</p>
+                  <p className="text-[10px] text-muted-foreground">{gap.learning_path.platform} · {gap.learning_path.duration}</p>
+                </div>
+                <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+              </a>
+            )}
+
             {/* YouTube Videos */}
             {gap.youtube_videos && gap.youtube_videos.length > 0 && (
               <div className="space-y-1 mt-2">
@@ -218,6 +239,81 @@ const RecommendationsTab: React.FC = () => {
           </motion.div>
         ))}
       </section>
+
+      {/* Job Suggestions — Apply to Similar Roles */}
+      {insights?.job_suggestions && insights.job_suggestions.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Apply to Similar Roles</h3>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Based on your resume, you'd be a strong candidate for these positions:
+          </p>
+          <div className="space-y-2">
+            {insights.job_suggestions.map((job: any, i: number) => (
+              <motion.a
+                key={i}
+                href={job.apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
+                className="block rounded-lg border border-border bg-card p-3 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-semibold text-foreground group-hover:text-primary truncate">
+                      {job.title}
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{job.company}</p>
+                    {job.location && (
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <MapPin className="h-2.5 w-2.5" /> {job.location}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+                    {/* Match Score */}
+                    <div className="flex items-center gap-1">
+                      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${job.match_score}%`,
+                            background: job.match_score >= 70 ? "hsl(142 71% 45%)" : job.match_score >= 40 ? "hsl(45 93% 47%)" : "hsl(0 84% 60%)",
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-foreground">{job.match_score}%</span>
+                    </div>
+                    {/* Source badge */}
+                    <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${
+                      job.source === "LinkedIn" ? "bg-blue-500/10 text-blue-600" :
+                      job.source === "Remotive" ? "bg-green-500/10 text-green-600" :
+                      "bg-purple-500/10 text-purple-600"
+                    }`}>{job.source}</span>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {job.salary && (
+                      <span className="text-[10px] text-muted-foreground">{job.salary}</span>
+                    )}
+                    {job.posted && (
+                      <span className="text-[10px] text-muted-foreground">Posted: {job.posted}</span>
+                    )}
+                  </div>
+                  <span className="flex items-center gap-1 text-[10px] font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Apply <ArrowUpRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        </section>
+      )}
       </>
       )}
     </div>

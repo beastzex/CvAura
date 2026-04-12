@@ -11,6 +11,13 @@ interface ResumeData {
 interface ScoreData {
   overall_score: number;
   parameters: any[];
+  suggestions?: string[];
+}
+
+interface FixedResumeData {
+  original_json: any;
+  fixed_json: any;
+  changes_summary: string[];
 }
 
 interface AppState {
@@ -26,6 +33,8 @@ interface AppState {
   setResumeData: (data: ResumeData) => void;
   scoreData: ScoreData | null;
   setScoreData: (data: ScoreData) => void;
+  fixedResumeData: FixedResumeData | null;
+  setFixedResumeData: (data: FixedResumeData | null) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -47,6 +56,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
+  const [fixedResumeData, setFixedResumeData] = useState<FixedResumeData | null>(null);
 
   // Sync isDark with the document's dark class (set by ToggleTheme component)
   useEffect(() => {
@@ -72,7 +82,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ userType, setUserType, uploaded, setUploaded, fileName, setFileName, isDark, toggleTheme, resumeData, setResumeData, scoreData, setScoreData }}>
+    <AppContext.Provider value={{ userType, setUserType, uploaded, setUploaded, fileName, setFileName, isDark, toggleTheme, resumeData, setResumeData, scoreData, setScoreData, fixedResumeData, setFixedResumeData }}>
       {children}
     </AppContext.Provider>
   );

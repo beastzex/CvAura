@@ -61,10 +61,12 @@ class ScoreParameter(BaseModel):
     score: int
     weight: int
     feedback: str
+    reasoning: str = ""     # detailed rationale for the score
 
 class ScoreResponse(BaseModel):
     overall_score: int
     parameters: list[ScoreParameter]
+    suggestions: list[str] = []   # 6-7 actionable improvement suggestions
 
 class ChatRequest(BaseModel):
     prompt: str
@@ -81,3 +83,24 @@ class TargetRequest(BaseModel):
     target: str             # company name or full JD text
     job_title: str = ""     # e.g., "Software Engineer", "SDE Intern"
     company: str = ""       # e.g., "Google", "Amazon"
+
+class FixAllRequest(BaseModel):
+    parsed_json: dict[str, Any]
+    user_type: str          # "fresher" | "experienced"
+    score_parameters: list[dict[str, Any]] = []   # score breakdown for context
+    suggestions: list[str] = []                     # suggestions to address
+
+class FixAllResponse(BaseModel):
+    original_json: dict[str, Any]
+    fixed_json: dict[str, Any]
+    changes_summary: list[str]    # human-readable list of what was changed
+
+class JobSuggestion(BaseModel):
+    title: str
+    company: str
+    location: str = ""
+    apply_url: str
+    source: str             # "Remotive" | "Arbeitnow" | "LinkedIn"
+    match_score: int = 0    # 0-100 fit score
+    salary: str = ""
+    posted: str = ""

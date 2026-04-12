@@ -1,6 +1,6 @@
-# CvAura - Resume Analysis & Optimization Platform
+# CvAura — AI-Powered Resume Analysis & Optimization Platform
 
-**Complete Project Documentation**
+**Complete Project Documentation v2.0**
 
 ---
 
@@ -10,29 +10,31 @@
 2. [Context & Purpose](#context--purpose)
 3. [Key Features](#key-features)
 4. [Tech Stack](#tech-stack)
-5. [Technical Architecture](#technical-architecture)
+5. [Execution Architecture](#execution-architecture)
 6. [Directory Structure](#directory-structure)
 7. [Installation & Setup](#installation--setup)
 8. [Usage Guide](#usage-guide)
 9. [API Documentation](#api-documentation)
 10. [Database Schema](#database-schema)
-11. [Development Guide](#development-guide)
-12. [Deployment Guide](#deployment-guide)
-13. [Environment Variables](#environment-variables)
-14. [Troubleshooting](#troubleshooting)
+11. [How It Works — Deep Dive](#how-it-works--deep-dive)
+12. [Development Guide](#development-guide)
+13. [Deployment Guide](#deployment-guide)
+14. [Environment Variables](#environment-variables)
+15. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Project Overview
 
-**CvAura** is a full-stack AI-powered resume analysis and optimization platform that helps job seekers improve their resumes through intelligent scoring, personalized editing suggestions, and company-specific targeting recommendations.
+**CvAura** is a production-grade, AI-powered resume optimization platform built with a multi-agent architecture. It uses Groq's Llama-3.3-70b-versatile LLM for intelligent resume analysis, real-time job market data from multiple free APIs, and a modern React frontend with WebGL effects.
 
 ### Quick Stats
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS
-- **Backend**: FastAPI + Python
-- **Database**: Supabase (PostgreSQL)
-- **AI Integration**: Groq Llama-3.1-70b-versatile API
-- **File Processing**: PDF & DOCX support
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + Framer Motion + WebGL
+- **Backend**: FastAPI + Python 3.11 + Pydantic
+- **Database**: Supabase (PostgreSQL + File Storage)
+- **AI Engine**: Groq Llama-3.3-70b-versatile (multi-agent architecture)
+- **Job Search**: Remotive + Arbeitnow + LinkedIn (all free, no API keys needed)
+- **File Processing**: PDF (PyMuPDF) & DOCX support
 
 ---
 
@@ -41,17 +43,19 @@
 ### Problem Statement
 Job seekers struggle to:
 - Optimize resumes for ATS (Applicant Tracking Systems)
-- Understand what makes their resume competitive
+- Understand what makes their resume competitive or weak
+- Quantify achievements and use impactful language
 - Tailor resumes for specific companies and roles
-- Structure resume content professionally
+- Find relevant job openings that match their profile
 
 ### Solution
 CvAura provides an all-in-one platform that:
-- **Parses** resumes (PDF/DOCX) into structured data
-- **Scores** resumes based on multiple criteria (fresher vs. experienced)
-- **Suggests** improvements through AI-powered chat
-- **Targets** companies with role-specific recommendations
-- **Exports** optimized resumes as professional PDFs
+- **Parses** resumes (PDF/DOCX) into structured JSON using AI
+- **Scores** resumes with detailed rubrics (fresher vs. experienced) and provides actionable suggestions
+- **Fixes** weak sections automatically using multi-agent AI with before/after comparison
+- **Targets** companies with skill gap analysis, verified learning paths, and YouTube tutorials
+- **Finds jobs** from multiple sources in real-time with direct apply links
+- **Exports** optimized resumes as professional ATS-friendly PDFs
 
 ### Target Users
 - **Freshers**: Entry-level job seekers (graduates, interns)
@@ -61,42 +65,81 @@ CvAura provides an all-in-one platform that:
 
 ## Key Features
 
-### 1. **Resume Upload & Parsing**
-- Support for PDF and DOCX formats
-- Automatic extraction of structured data
-- AI-powered parsing using Groq Llama-3.1-70b
+### 1. Resume Upload & AI Parsing
+- Support for PDF and DOCX formats (max 10MB)
+- Automatic text extraction using PyMuPDF (PDF) and python-docx (DOCX)
+- AI-powered structuring via Groq Llama-3.3-70b that extracts:
+  - Personal info, education, experience, projects, hackathons, skills, certifications
+- Stores original files in Supabase Storage, structured data in PostgreSQL
 
-### 2. **Resume Scoring**
-- Comprehensive scoring algorithm (0-100)
-- Multiple evaluation parameters:
-  - Format & Structure
-  - Content Relevance
-  - Keywords & Skills
-  - Achievement Metrics
-  - Professional Presentation
-- Different scoring criteria for freshers vs. experienced professionals
+### 2. Advanced ATS Scoring Engine
+- **Rubric-based evaluation** — not generic, uses explicit scoring criteria:
+  - **Freshers**: Keyword Match (15%), Education Alignment (20%), Hackathons (10%), Projects & GitHub (15%), Certifications (10%), ATS Language (10%), Soft Skills (10%), LinkedIn (10%)
+  - **Experienced**: Keyword Match (15%), Experience Quantification (20%), Role Progression (10%), Technical Depth (15%), Leadership & Impact (10%), ATS Language (10%), Industry Alignment (10%), Certifications (10%)
+- **Detailed reasoning** — each parameter includes a 2-3 sentence explanation citing specific resume content
+- **Actionable feedback** — one-sentence fix per parameter
+- **6-7 improvement suggestions** — generated by a second LLM call, prioritized by impact
 
-### 3. **AI-Powered Chat Editor**
-- Section-specific editing assistance
-- Natural language conversation for resume improvements
-- Maintains conversation history for context
-- Real-time suggestions
+### 3. Fix All with AI
+- One-click button that identifies all weak sections (score < 75) and rewrites them:
+  - **Summary** → professional positioning with measurable highlights
+  - **Experience bullets** → action verbs + quantified metrics + impact-driven language
+  - **Projects** → technical depth, architecture decisions, scale indicators
+  - **Skills** → removes generic terms, adds missing technical skills from projects
+- Returns both original and fixed JSON for **before/after comparison view**
+- Fixed resume can be **downloaded as PDF** immediately
+- Rate-limit aware with 1s delays between LLM calls
 
-### 4. **Company Targeting & Recommendations**
-- Analyzes job descriptions
-- Provides company-specific recommendations
-- Suggests skill emphasis for target roles
-- Generates tailored content suggestions
+### 4. AI Chat Editor
+- Section-specific editing with conversation history
+- Uses strong action verbs (Led, Architected, Spearheaded)
+- Adds quantifiable metrics (%, $, users, time saved)
+- ATS-friendly language enforcement
+- Returns updated section data + explanation of changes
 
-### 5. **PDF Export**
-- Generate professional PDF resumes
-- Preserves formatting and structure
-- Ready-to-send format
+### 5. Company Targeting & Recommendation Engine
+- **TF-IDF keyword gap analysis** — identifies missing keywords between resume and job description
+- **Web scraping** — scrapes real job postings from LinkedIn for skill extraction
+- **AI recommendations** with real market data:
+  - Skill gaps with current/required levels and priority (Critical/High/Medium/Low)
+  - Verified learning paths (Coursera, Udemy, freeCodeCamp, LeetCode, MIT OCW)
+  - Project suggestions to demonstrate each missing skill
+  - Industry demand explanation per skill gap
+- **DSA & CS Fundamentals detection** — flags missing competitive programming skills for software roles
+- **YouTube tutorials** — auto-searches relevant tutorial videos for each skill gap
 
-### 6. **Session Management**
-- Persistent resume sessions using Supabase
-- Multiple resume handling per session
-- Score history and tracking
+### 6. Real-Time Job Suggestions (10-15 results)
+- **Multi-source search** using 3 free APIs (no keys needed):
+  - Remotive API — remote/tech jobs
+  - Arbeitnow API — global job postings
+  - LinkedIn public job search — best-effort scraping
+- **Smart query expansion** — generates 5-6 search variations:
+  - Role synonyms (e.g., "Software Engineer" → "Backend Developer", "Full Stack Developer")
+  - Skill-based queries (e.g., "Python developer", "React developer")
+- **Advanced 5-factor match scoring** (100 points):
+  - Title Relevance (30) — word overlap + synonym detection
+  - Skill Match (35) — checks resume skills against job title, tags, and description
+  - Seniority Match (15) — junior↔junior, senior↔senior prioritized
+  - Accessibility Bonus (10) — remote/worldwide roles get bonus
+  - Freshness & Quality (10) — salary info, recency, source reliability
+- Each result includes: title, company, location, apply URL, match score, source badge
+
+### 7. Professional PDF Export
+- ATS-friendly format using ReportLab
+- Clean typography (Helvetica family)
+- Properly structured sections with headings
+- Clickable links for LinkedIn, GitHub, and project URLs
+- Works with both original and AI-fixed resumes
+
+### 8. Modern UI/UX
+- **Theme-aware hero section**:
+  - Light mode: massive typographic hero, "Get Started" button, no orb
+  - Dark mode: 3D WebGL Orb background, drag-drop upload zone
+- **3D Feature Showcase** (InfiniteMenu): WebGL-based interactive globe for feature display
+- **View Transition API** theme toggle with smooth animation
+- **Glassmorphism + Framer Motion** animations throughout
+- **Hidden scrollbars** for clean app-like aesthetic
+- **GooeyNav** pill-style navigation + **FlowingMenu** GSAP marquee
 
 ---
 
@@ -104,154 +147,283 @@ CvAura provides an all-in-one platform that:
 
 ### Frontend
 ```
-├── React 18.3.1
-├── TypeScript
-├── Vite (build tool)
-├── React Router (navigation)
-├── Tailwind CSS (styling)
-├── Shadcn/ui (component library)
-├── TanStack React Query (state management)
-├── Framer Motion (animations)
-└── Sonner (notifications)
+├── React 18.3.1           (UI library)
+├── TypeScript              (type safety)
+├── Vite                    (build tool, dev server on port 8080)
+├── React Router            (SPA navigation)
+├── Tailwind CSS            (utility-first styling)
+├── Framer Motion           (animations, transitions)
+├── WebGL2 + gl-matrix      (3D Orb + InfiniteMenu globe)
+├── GSAP                    (FlowingMenu marquee animation)
+└── Lucide React            (icon system)
 ```
 
 ### Backend
 ```
-├── FastAPI 0.111.0 (web framework)
-├── Uvicorn 0.29.0 (ASGI server)
-├── Python 3.11+
-├── Pydantic (validation)
-├── Supabase (database & storage)
-├── Groq API (Llama-3.1-70b-versatile LLM)
-├── PyMuPDF (PDF processing)
-├── python-docx (DOCX processing)
-├── Scikit-learn (text processing)
-├── ReportLab (PDF generation)
-└── Playwright (web scraping)
+├── FastAPI 0.111.0         (web framework, async)
+├── Uvicorn 0.29.0          (ASGI server)
+├── Python 3.11+            (runtime)
+├── Pydantic 2.7.4          (request/response validation)
+├── Supabase 2.4.6          (database + file storage client)
+├── OpenAI SDK 1.54.0       (Groq API via OpenAI-compatible interface)
+├── PyMuPDF 1.24.5          (PDF text extraction)
+├── scikit-learn 1.5.0      (TF-IDF keyword analysis)
+├── ReportLab 4.0.7         (PDF generation)
+├── httpx 0.27.0            (async HTTP client for job APIs)
+├── BeautifulSoup4 4.12.3   (HTML parsing for LinkedIn scraping)
+└── youtube-search-python   (YouTube tutorial search)
 ```
 
 ### Infrastructure
 ```
-├── Supabase (PostgreSQL, Storage)
-├── Groq API (Llama-3.1-70b-versatile Model)
-├── Railway/Render (Backend hosting)
-└── Vercel (Frontend hosting)
+├── Supabase                (PostgreSQL database + file storage)
+├── Groq API                (Llama-3.3-70b-versatile LLM)
+├── Remotive API            (free job search — no key)
+├── Arbeitnow API           (free job search — no key)
+├── LinkedIn Public Search  (job scraping — best effort)
+├── Vercel                  (frontend hosting)
+└── Railway / Render        (backend hosting)
 ```
 
 ---
 
-## Technical Architecture
+## Execution Architecture
 
 ### System Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      USER BROWSER                           │
-│         (React + TypeScript + Tailwind CSS)                 │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼ HTTPS
-┌─────────────────────────────────────────────────────────────┐
-│                   VERCEL (Frontend)                         │
-│  ├── SPA (Single Page Application)                         │
-│  ├── React Router for navigation                           │
-│  └── TanStack Query for API calls                          │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼ REST API Calls
-┌─────────────────────────────────────────────────────────────┐
-│                 RAILWAY/RENDER (Backend)                    │
-│                    FastAPI Server                           │
-│                                                              │
-│  ├── /api/upload          → Upload resume (PDF/DOCX)        │
-│  ├── /api/score           → Score resume                    │
-│  ├── /api/chat-edit       → AI-powered editing              │
-│  ├── /api/target-company  → Company targeting              │
-│  ├── /api/export-pdf      → PDF export                     │
-│  └── /api/health          → Health check                    │
-│                                                              │
-│  Services:                                                  │
-│  ├── parser.py            → Extract & parse resume data    │
-│  ├── scorer.py            → Calculate resume scores         │
-│  ├── chat.py              → AI chat for editing             │
-│  ├── targeting.py         → Company recommendations         │
-│  ├── pdf_generator.py     → PDF export                     │
-│  └── scraper.py           → Job description scraping       │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-        ┌─────────────┴──────────────┐
-        ▼                            ▼
-┌──────────────────┐        ┌──────────────────┐
-│    SUPABASE      │        │   GROQ API       │
-│  ┌────────────┐  │        │ (Llama-3.1-70b)  │
-│  │ PostgreSQL │  │        │                  │
-│  │ Database   │  │        │  • Parsing       │
-│  └────────────┘  │        │  • Scoring       │
-│  ┌────────────┐  │        │  • Chat          │
-│  │  Storage   │  │        │  • Recommendations
-│  │  Bucket    │  │        │                  │
-│  └────────────┘  │        └──────────────────┘
-└──────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                        USER BROWSER                               │
+│         React 18 + TypeScript + Tailwind + WebGL                 │
+│                                                                    │
+│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐    │
+│  │ Landing  │  │ Workspace│  │ Score    │  │ Recommendations│    │
+│  │  Page    │  │  (Split) │  │  Tab     │  │     Tab        │    │
+│  └─────────┘  └──────────┘  └──────────┘  └────────────────┘    │
+│       │            │              │               │               │
+│       └────────────┴──────────────┴───────────────┘               │
+│                           │                                        │
+│                    AppContext (Global State)                       │
+│                    ├── resumeData                                  │
+│                    ├── scoreData (+ suggestions)                   │
+│                    ├── fixedResumeData (before/after)              │
+│                    └── isDark / userType                           │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+                      api.ts │ REST API Calls
+                             ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    FastAPI Backend (Python)                        │
+│                                                                    │
+│  Endpoints:                                                       │
+│  ├── POST /api/upload          → Ingestion Engine                 │
+│  ├── POST /api/score           → Scoring Engine                   │
+│  ├── POST /api/fix-all         → Fix All AI Engine                │
+│  ├── POST /api/chat-edit       → Multi-Agent Chat/Edit            │
+│  ├── POST /api/target-company  → Targeting + Job Search           │
+│  ├── POST /api/export-pdf      → PDF Export Engine                │
+│  └── GET  /health              → Health Check                     │
+│                                                                    │
+│  Services Layer:                                                  │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌──────────┐ │
+│  │parser.py│ │scorer.py│ │fixer.py │ │targeting │ │job_search│ │
+│  │         │ │         │ │(NEW)    │ │   .py    │ │  .py     │ │
+│  │Extract  │ │Rubric   │ │AI fixes │ │TF-IDF + │ │Remotive +│ │
+│  │& parse  │ │scoring +│ │weak     │ │skill gap│ │Arbeitnow+│ │
+│  │via LLM  │ │suggest  │ │sections │ │+ YouTube│ │LinkedIn  │ │
+│  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ └────┬─────┘ │
+│       │           │           │            │           │         │
+│       ▼           ▼           ▼            ▼           ▼         │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │              Groq API (Llama-3.3-70b-versatile)          │    │
+│  │  Used for: parsing, scoring, suggestions, fixing,        │    │
+│  │           recommendations, skill extraction              │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└──────────┬──────────────────────────┬────────────────────────────┘
+           │                          │
+     ┌─────▼──────┐          ┌───────▼────────────────────────┐
+     │  Supabase   │          │   External Free APIs           │
+     │ ┌────────┐  │          │ ┌──────────┐ ┌──────────────┐ │
+     │ │Postgres│  │          │ │ Remotive │ │  Arbeitnow   │ │
+     │ │Database│  │          │ │   API    │ │    API       │ │
+     │ └────────┘  │          │ └──────────┘ └──────────────┘ │
+     │ ┌────────┐  │          │ ┌──────────┐ ┌──────────────┐ │
+     │ │Storage │  │          │ │ LinkedIn │ │   YouTube    │ │
+     │ │Bucket  │  │          │ │ Scraping │ │   Search     │ │
+     │ └────────┘  │          │ └──────────┘ └──────────────┘ │
+     └─────────────┘          └────────────────────────────────┘
 ```
 
-### Data Flow
+### Data Flow — How Each Feature Works
 
-#### 1. Resume Upload Flow
+#### 1. Resume Upload & Parsing Flow
 ```
-User selects file
+User drops PDF/DOCX on landing page
     ↓
-Frontend validates file (PDF/DOCX)
+Frontend validates file type & size (max 10MB)
     ↓
-POST /api/upload (FormData)
+POST /api/upload (multipart FormData + user_type: fresher/experienced)
     ↓
-Backend extracts text (PyMuPDF/python-docx)
+Backend extracts raw text:
+  ├── PDF → PyMuPDF (fitz.open → page.get_text)
+  └── DOCX → zipfile → XML parsing → text extraction
     ↓
-Groq Llama-3.1-70b structures resume JSON
+Groq Llama-3.3-70b structures raw text into ParsedResume JSON:
+  { personal_info, education, experience, projects, hackathons, skills, certifications }
     ↓
-Store in Supabase (database + storage)
+Store in Supabase:
+  ├── sessions table → { id, user_type }
+  ├── resumes table → { id, session_id, storage_url, parsed_json }
+  └── storage bucket → original file at {session_id}/{filename}
     ↓
-Return parsed_json + session_id to frontend
-```
-
-#### 2. Scoring Flow
-```
-Frontend sends parsed_json
+Return { session_id, resume_id, storage_url, parsed_json } to frontend
     ↓
-POST /api/score
-    ↓
-Backend runs scoring algorithm
-    ↓
-Groq generates parameter-specific feedback
-    ↓
-Store scores in Supabase
-    ↓
-Return scores to frontend
+Frontend navigates to Workspace with parsed resume data
 ```
 
-#### 3. AI Chat Flow
+#### 2. ATS Scoring Flow
 ```
-User sends editing request
+Workspace ScoreTab mounts → auto-triggers scoring
     ↓
-POST /api/chat-edit with section_data
+POST /api/score { parsed_json, user_type, resume_id }
     ↓
-Groq Llama-3.1-70b generates suggestions
+scorer.py selects rubric (FRESHER_PARAMS or EXPERIENCED_PARAMS)
     ↓
-Return updated_section + message
+LLM Call #1: Score each parameter (0-100) with:
+  ├── Feedback: one actionable sentence
+  ├── Reasoning: 2-3 sentences citing specific resume content
+  └── Rubric enforcement: quantification checks, action verb detection
     ↓
-Frontend merges changes with current state
+LLM Call #2: Generate 6-7 improvement suggestions based on weak scores
+  ├── Prioritized by impact (most impactful first)
+  ├── Concrete and implementable (references specific sections)
+  └── Different focus for freshers vs. experienced
+    ↓
+Calculate overall_score = Σ(parameter.score × parameter.weight / 100)
+    ↓
+Store in Supabase scores table
+    ↓
+Return { overall_score, parameters[], suggestions[] }
+    ↓
+Frontend renders:
+  ├── Animated score card (radial gauge)
+  ├── Parameter bars with color coding (green/yellow/red)
+  ├── Reasoning text in italic
+  └── Numbered suggestion cards
 ```
 
-#### 4. Company Targeting Flow
+#### 3. Fix All with AI Flow
 ```
-User provides job description
+User clicks "Fix All with AI" button in ScoreTab
     ↓
-POST /api/target-company
+POST /api/fix-all { parsed_json, user_type, score_parameters, suggestions }
     ↓
-Analyze resume vs. job requirements
+fixer.py identifies weak areas (score < 75)
     ↓
-Groq Llama-3.1-70b generates recommendations
+LLM Call #1: Rewrite professional summary
+  → Strong positioning, measurable highlights, 2-3 sentences
+    ↓ (1s delay for rate limits)
+LLM Call #2: Rewrite experience bullets (if weak)
+  → Action verbs + quantified metrics + impact structure
+  → Each bullet: "[Verb] [what] [using technology], [resulting in impact]"
+    ↓ (1s delay)
+LLM Call #3: Enhance project descriptions (if weak)
+  → Technical complexity, architecture decisions, scale metrics
+    ↓ (1s delay)
+LLM Call #4: Optimize skills list
+  → Remove generic terms, add skills from projects/experience, max 25
     ↓
-Return targeted suggestions
+Return { original_json, fixed_json, changes_summary[] }
+    ↓
+Frontend renders before/after comparison:
+  ├── Changes summary (green box with checkmarks)
+  ├── Side-by-side diff for Summary
+  ├── Side-by-side diff for each Experience entry
+  ├── Side-by-side diff for Skills list
+  └── "Download Improved Resume (PDF)" button
+```
+
+#### 4. Company Targeting + Job Search Flow
+```
+User enters Job Title + Company + JD text → clicks "Analyze"
+    ↓
+POST /api/target-company { parsed_json, target, job_title, company }
+    ↓
+Step 1: TF-IDF keyword analysis
+  ├── Extract top features from JD using TfidfVectorizer
+  ├── Extract resume terms
+  └── Identify missing keywords (JD terms not in resume)
+    ↓
+Step 2: Web scraping (scraper.py)
+  ├── Scrape LinkedIn job listings for similar roles
+  ├── Scrape top 2 job descriptions for skill extraction
+  ├── Extract common requirements using LLM
+  └── Check DSA/CS fundamentals requirements
+    ↓
+Step 3: AI recommendations (targeting.py → LLM)
+  ├── Skill gaps with current/required levels + priority
+  ├── Verified learning paths (Coursera, Udemy, freeCodeCamp URLs)
+  ├── Project suggestions per skill gap
+  ├── DSA requirements analysis
+  ├── Strengths / Weaknesses / Competitive Edge lists
+  └── CS fundamentals check
+    ↓
+Step 4: YouTube video search
+  └── 3 tutorial videos per skill gap
+    ↓
+Step 5: Real-time job search (job_search.py)
+  ├── Generate 5-6 query variations:
+  │   ├── Original title: "Software Engineer"
+  │   ├── Synonyms: "Backend Developer", "Full Stack Developer"
+  │   └── Skill-based: "Python Developer", "React Developer"
+  ├── For each variation, search 3 APIs:
+  │   ├── Remotive (10 results per query)
+  │   ├── Arbeitnow (10 results per query)
+  │   └── LinkedIn (10 results, first 2 queries only)
+  ├── Total: ~60+ raw results → deduplicate → score → rank
+  ├── 5-factor scoring (title relevance, skill match, seniority, accessibility, freshness)
+  └── Return top 15 unique jobs with apply URLs
+    ↓
+Return combined response to frontend
+    ↓
+Frontend renders:
+  ├── Market insights panel (jobs analyzed, data sources)
+  ├── DSA alert (if software role with missing DSA)
+  ├── Strengths & Weaknesses cards
+  ├── Competitive Edge section
+  ├── Skill gaps with progress bars + learning paths + YouTube videos
+  └── "Apply to Similar Roles" — 10-15 job cards with apply links
+```
+
+#### 5. AI Chat Edit Flow
+```
+User selects section + types editing instruction
+    ↓
+POST /api/chat-edit { prompt, section_key, section_data, chat_history }
+    ↓
+chat.py builds conversation with system prompt:
+  → Expert career coach + ATS specialist persona
+  → Rules: action verbs, metrics, ATS-friendly language
+    ↓
+Groq LLM generates { updated_section, message }
+    ↓
+Frontend merges updated section into DocumentViewer
+```
+
+#### 6. PDF Export Flow
+```
+User clicks "Download" (original or AI-fixed resume)
+    ↓
+POST /api/export-pdf { parsed_json }
+    ↓
+pdf_generator.py builds PDF using ReportLab:
+  ├── Title: candidate name (centered, 18pt)
+  ├── Contact: email | phone | location
+  ├── Links: LinkedIn | GitHub (clickable)
+  ├── Sections: Summary, Education, Experience, Projects, Skills, Hackathons, Certifications
+  └── ATS-friendly: Helvetica font, no images, no tables, clean structure
+    ↓
+Return PDF bytes → browser downloads file
 ```
 
 ---
@@ -263,60 +435,63 @@ cvaura/
 ├── aura-resume-studio/           # Frontend (React + Vite)
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── ui/              # Shadcn/ui components
-│   │   │   ├── ChatBubble.tsx
-│   │   │   ├── ChatTab.tsx
-│   │   │   ├── DocumentViewer.tsx
-│   │   │   ├── LandingPage.tsx
-│   │   │   ├── Workspace.tsx
-│   │   │   ├── ScoreCard.tsx
-│   │   │   └── TiltCard.tsx
+│   │   │   ├── ui/              # Shadcn/ui base components
+│   │   │   ├── LandingPage.tsx  # Theme-aware hero + feature sections
+│   │   │   ├── Workspace.tsx    # Split-pane workspace layout
+│   │   │   ├── DocumentViewer.tsx # Resume preview panel
+│   │   │   ├── ChatTab.tsx      # AI chat editing interface
+│   │   │   ├── ChatBubble.tsx   # Chat message component
+│   │   │   ├── ScoreTab.tsx     # ATS scoring + suggestions + Fix All + comparison
+│   │   │   ├── ScoreCard.tsx    # Radial score gauge
+│   │   │   ├── RecommendationsTab.tsx # Targeting + skill gaps + job suggestions
+│   │   │   ├── Orb.tsx          # WebGL 3D orb (dark mode hero)
+│   │   │   ├── InfiniteMenu.tsx # WebGL 3D feature globe
+│   │   │   ├── GooeyNav.tsx     # Pill-style navigation
+│   │   │   ├── FlowingMenu.tsx  # GSAP marquee menu
+│   │   │   ├── TiltCard.tsx     # 3D tilt hover cards
+│   │   │   └── toggle-theme.tsx # View Transition API theme toggle
 │   │   ├── pages/
-│   │   │   ├── Index.tsx         # Main page
-│   │   │   └── NotFound.tsx
+│   │   │   ├── Index.tsx        # Main page (landing → workspace)
+│   │   │   ├── About.tsx        # About page
+│   │   │   ├── Contact.tsx      # Contact form (Web3Forms)
+│   │   │   └── NotFound.tsx     # 404 page
 │   │   ├── context/
-│   │   │   └── AppContext.tsx    # Global state
-│   │   ├── hooks/
-│   │   │   ├── use-mobile.tsx
-│   │   │   └── use-toast.ts
+│   │   │   └── AppContext.tsx   # Global state (resumeData, scoreData, fixedResumeData, theme)
 │   │   ├── lib/
-│   │   │   ├── api.ts            # API client
-│   │   │   ├── mock-data.ts
-│   │   │   └── utils.ts
-│   │   ├── App.tsx
-│   │   ├── main.tsx              # Entry point
-│   │   ├── index.css
-│   │   └── App.css
+│   │   │   ├── api.ts           # API client (upload, score, fixAll, chatEdit, target, exportPDF)
+│   │   │   ├── mock-data.ts     # Development mock data
+│   │   │   └── utils.ts         # Utility functions
+│   │   ├── App.tsx              # Router setup
+│   │   ├── main.tsx             # Entry point
+│   │   └── index.css            # Global styles + scrollbar hiding
 │   ├── public/
+│   │   └── *.png                # Feature images for InfiniteMenu
 │   ├── package.json
 │   ├── vite.config.ts
 │   ├── tsconfig.json
-│   ├── tailwind.config.ts
-│   └── playwright.config.ts
+│   └── tailwind.config.ts
 │
 ├── backend/                       # FastAPI backend
-│   ├── api/                      # For Vercel deployment
-│   │   └── index.py
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── parser.py             # Resume parsing
-│   │   ├── scorer.py             # Scoring algorithm
-│   │   ├── chat.py               # AI chat
-│   │   ├── targeting.py          # Company targeting
-│   │   ├── pdf_generator.py      # PDF export
-│   │   ├── scraper.py            # Job scraping
-│   │   └── __init__.py
-│   ├── main.py                   # FastAPI app
-│   ├── db.py                     # Supabase client
-│   ├── schemas.py                # Pydantic models
-│   ├── requirements.txt
-│   ├── migration.sql             # Database schema
-│   ├── test_grok.py
-│   └── vercel.json
+│   │   ├── parser.py             # Resume text extraction + AI structuring
+│   │   ├── scorer.py             # Rubric-based ATS scoring + suggestions
+│   │   ├── fixer.py              # [NEW] Fix All AI engine
+│   │   ├── chat.py               # AI conversation editing
+│   │   ├── targeting.py          # Company targeting + skill gaps + learning paths
+│   │   ├── job_search.py         # [NEW] Multi-source real-time job search
+│   │   ├── scraper.py            # LinkedIn + job board scraping + DSA detection
+│   │   └── pdf_generator.py      # ReportLab PDF export
+│   ├── main.py                   # FastAPI app + all endpoints
+│   ├── db.py                     # Supabase client initialization
+│   ├── schemas.py                # Pydantic models (ParsedResume, Score*, Fix*, JobSuggestion)
+│   ├── requirements.txt          # Python dependencies
+│   ├── migration.sql             # Database schema SQL
+│   └── test_grok.py              # API connectivity test
 │
-├── Myvenv/                        # Python virtual environment
-├── .env                           # Environment variables
-├── package.json                   # Root package.json
+├── .env                           # Root environment variables
+├── .gitignore
+├── README.md                     # Quick start guide
 └── DOCUMENTATION.md              # This file
 ```
 
@@ -325,11 +500,11 @@ cvaura/
 ## Installation & Setup
 
 ### Prerequisites
-- **Node.js** 16+ and **npm** or **bun**
+- **Node.js** 16+ and **npm**
 - **Python** 3.11+
 - **Git**
-- A **Supabase** account (for database)
-- A **Groq** account (for Llama API)
+- A **Supabase** account (for database + file storage)
+- A **Groq** account (for Llama-3.3-70b API)
 
 ### Step 1: Clone Repository
 ```bash
@@ -344,8 +519,6 @@ cd aura-resume-studio
 
 # Install dependencies
 npm install
-# or
-bun install
 
 # Create .env.local
 cat > .env.local << EOF
@@ -376,36 +549,25 @@ pip install -r requirements.txt
 
 # Create .env file
 cat > .env << EOF
-# Supabase
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-supabase-api-key
-
-# Groq API (Llama-3.1-70b-versatile)
 GROQ_API_KEY=your-groq-api-key
-
-# Optional: For scraping services
-YOUTUBE_API_KEY=optional-youtube-key
 EOF
 
-# Run database migrations (one-time setup)
-psql -U postgres -d your_db_name < migration.sql
-
 # Start FastAPI server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --port 8000
 # Server runs at http://localhost:8000
 ```
 
 ### Step 4: Database Setup (Supabase)
 
 1. Create Supabase project at https://supabase.com
-2. Create tables with migration script:
+2. Run migration script in SQL Editor:
    ```sql
-   -- Run migration.sql in Supabase SQL editor
+   -- Paste contents of migration.sql
    ```
-3. Get API credentials:
-   - Project URL
-   - Anon Key (API Key)
-   - Service Role Key (if needed)
+3. Create storage bucket named `resumes` with public read access
+4. Copy Project URL and Anon Key into `.env`
 
 ### Step 5: Groq API Setup
 
@@ -413,11 +575,11 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 2. Create API key
 3. Add to `.env` as `GROQ_API_KEY`
 
-**Why Groq?**
-- Llama-3.1-70b-versatile model for superior reasoning
-- 1000 requests/minute rate limit (vs Gemini's lower limits)
-- Better context understanding for resume analysis
-- Cost-effective for high-volume processing
+**Why Groq + Llama-3.3-70b?**
+- Fast inference (~500 tokens/sec)
+- 128k context window handles full resumes
+- Free tier: 30 requests/minute, 14,400 requests/day
+- OpenAI-compatible SDK (drop-in replacement)
 
 ---
 
@@ -426,58 +588,54 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### End-User Workflow
 
 #### 1. Upload Resume
-```
-1. Open application at http://localhost:8080
-2. Select resume file (PDF or DOCX)
-3. Choose user type: "fresher" or "experienced"
-4. Click "Upload" button
-5. System extracts and structures resume data
-```
+1. Open http://localhost:8080
+2. Light mode: click "Get Started →" button | Dark mode: drag-drop resume on upload zone
+3. Select user type: "Fresher" or "Experienced"
+4. System extracts, parses, and structures resume with AI
 
-#### 2. View Resume Score
-```
-1. After upload, view resume score (0-100)
-2. See breakdown of scoring parameters:
-   - Format & Structure
-   - Content Quality
-   - Keywords Relevance
-   - Achievement Metrics
-   - Professional Appearance
-3. Read detailed feedback for each parameter
-```
+#### 2. View ATS Score
+1. Score tab opens automatically after upload
+2. See overall score (0-100) with radial gauge
+3. View parameter breakdown with color-coded bars:
+   - 🟢 Green (80+): strong
+   - 🟡 Yellow (60-79): needs improvement
+   - 🔴 Red (<60): weak
+4. Read detailed reasoning for each parameter
+5. Review 6-7 actionable improvement suggestions
 
-#### 3. Chat with AI Editor
-```
-1. Navigate to "Edit" tab
+#### 3. Fix All with AI
+1. Click "Fix All with AI" button (gradient purple button)
+2. Wait ~15-20 seconds (3-4 LLM calls with rate-limit delays)
+3. View changes summary (what AI changed)
+4. Toggle "View Before / After" for side-by-side comparison
+5. Click "Download Improved Resume (PDF)" to get the fixed version
+
+#### 4. Chat with AI Editor
+1. Navigate to "Chat & Edit" tab
 2. Select section to edit (experience, projects, etc.)
-3. Ask for improvements in natural language
-4. Examples:
+3. Type natural language instructions:
    - "Make my work experience more impactful"
    - "Add more technical details to projects"
-   - "Improve the achievement metrics"
-5. Review suggested changes
-6. Accept or ask for refinement
-```
+   - "Quantify my achievements with numbers"
+4. Review AI-generated changes
+5. Accept or ask for refinement
 
-#### 4. Target Specific Company
-```
-1. Go to "Target Company" section
-2. Paste job description OR enter company name
-3. System analyzes resume vs. job requirements
-4. Receive:
-   - Skill gap analysis
-   - Content recommendations
-   - Keywords to add
-   - Section-specific suggestions
-```
+#### 5. Target Specific Company
+1. Go to "Insights" tab
+2. Enter Job Title + Company Name
+3. Paste full job description
+4. Click "Analyze with Real Market Data"
+5. Review:
+   - Skill gap analysis with priority levels
+   - Learning paths with course links
+   - YouTube tutorial recommendations
+   - Strengths / Weaknesses / Competitive Edge
+   - DSA requirements (for software roles)
+6. Scroll to "Apply to Similar Roles" — 10-15 real job openings with direct apply links
 
-#### 5. Export Resume
-```
-1. Make all desired edits
-2. Click "Export as PDF"
-3. Download professional PDF resume
-4. Ready to submit to applications
-```
+#### 6. Export Resume
+1. Click "Download" in ScoreTab (fixed version) or use the PDF export feature
+2. ATS-friendly PDF downloads immediately
 
 ---
 
@@ -500,75 +658,32 @@ POST /api/upload
 Content-Type: multipart/form-data
 
 Parameters:
-  - file: UploadFile (PDF or DOCX)
+  - file: UploadFile (PDF or DOCX, max 10MB)
   - user_type: string ("fresher" or "experienced")
 
-Response:
+Response 200:
 {
   "session_id": "uuid",
   "resume_id": "uuid",
-  "storage_url": "string",
+  "storage_url": "https://supabase.../storage/...",
   "parsed_json": {
-    "personal_info": {
-      "name": "string",
-      "email": "string",
-      "phone": "string",
-      "location": "string",
-      "linkedin": "string",
-      "github": "string",
-      "summary": "string"
-    },
-    "education": [
-      {
-        "degree": "string",
-        "school": "string",
-        "year": "string",
-        "gpa": "string"
-      }
-    ],
-    "experience": [
-      {
-        "title": "string",
-        "company": "string",
-        "period": "string",
-        "bullets": ["string"]
-      }
-    ],
-    "projects": [
-      {
-        "name": "string",
-        "description": "string",
-        "tech_stack": ["string"],
-        "link": "string"
-      }
-    ],
-    "hackathons": [
-      {
-        "name": "string",
-        "award": "string",
-        "year": "string"
-      }
-    ],
-    "skills": ["string"],
-    "certifications": [
-      {
-        "name": "string",
-        "issuer": "string",
-        "year": "string"
-      }
-    ]
+    "personal_info": { "name", "email", "phone", "location", "linkedin", "github", "summary" },
+    "education": [{ "degree", "school", "year", "gpa" }],
+    "experience": [{ "title", "company", "period", "bullets": [] }],
+    "projects": [{ "name", "description", "tech_stack": [], "link" }],
+    "hackathons": [{ "name", "award", "year" }],
+    "skills": ["skill1", "skill2"],
+    "certifications": [{ "name", "issuer", "year" }]
   }
 }
 
-Status Codes:
-  - 200: Success
-  - 400: Invalid file format or user_type
-  - 500: Server error
+Errors: 400 (invalid format), 500 (server error)
 ```
 
 #### 2. Score Resume
 ```http
 POST /api/score
+Content-Type: application/json
 
 Body:
 {
@@ -577,141 +692,137 @@ Body:
   "resume_id": "uuid"
 }
 
-Response:
+Response 200:
 {
-  "overall_score": 85,
+  "overall_score": 72,
   "parameters": [
     {
-      "label": "Format & Structure",
-      "score": 90,
+      "label": "Keyword Match",
+      "score": 65,
       "weight": 15,
-      "feedback": "Excellent formatting..."
-    },
-    {
-      "label": "Content Quality",
-      "score": 80,
-      "weight": 25,
-      "feedback": "Good content but..."
-    },
-    // ... more parameters
-  ]
-}
-
-Status Codes:
-  - 200: Success
-  - 400: Invalid user_type
-  - 500: Server error
-```
-
-#### 3. Chat/Edit Resume
-```http
-POST /api/chat-edit
-
-Body:
-{
-  "prompt": "Make my experience more impactful",
-  "section_key": "experience",
-  "section_data": {
-    "title": "Software Engineer",
-    "company": "TechCorp",
-    "period": "2022-2024",
-    "bullets": ["Developed features", "Led team"]
-  },
-  "chat_history": [
-    {
-      "role": "user",
-      "content": "Previous message"
-    },
-    {
-      "role": "assistant",
-      "content": "Previous response"
+      "feedback": "Resume lacks specific framework keywords like React, Docker.",
+      "reasoning": "The resume mentions Python and JavaScript but does not include framework-specific keywords that ATS systems look for. Adding React, Node.js, Docker would improve match rates by 20-30%."
     }
+  ],
+  "suggestions": [
+    "Add quantified metrics to all 4 experience bullet points — currently 0 out of 4 bullets contain numbers",
+    "Include Docker, Kubernetes, and CI/CD in skills section — these appear in 85% of similar job postings",
+    ...
   ]
 }
-
-Response:
-{
-  "updated_section": {
-    "title": "Senior Software Engineer",
-    "company": "TechCorp",
-    "period": "2022-2024",
-    "bullets": [
-      "Architected and deployed microservices...",
-      "Led team of 5 engineers..."
-    ]
-  },
-  "message": "Updated your experience section with stronger action verbs and metrics..."
-}
-
-Status Codes:
-  - 200: Success
-  - 500: Server error
 ```
 
-#### 4. Target Company
+#### 3. Fix All with AI
 ```http
-POST /api/target-company
+POST /api/fix-all
+Content-Type: application/json
 
 Body:
 {
   "parsed_json": object,
-  "target": "Senior Software Engineer at Google...", // job description
+  "user_type": "fresher" | "experienced",
+  "score_parameters": [{ "label", "score", "weight", "feedback" }],
+  "suggestions": ["suggestion1", "suggestion2"]
+}
+
+Response 200:
+{
+  "original_json": { ... },      // Original resume data
+  "fixed_json": { ... },          // AI-improved resume data
+  "changes_summary": [
+    "Rewrote professional summary with stronger positioning and measurable highlights",
+    "Enhanced all experience bullet points with action verbs, quantified metrics, and impact-driven language",
+    "Optimized skills list (8 → 15 skills) — added missing technical skills and removed generic terms"
+  ]
+}
+```
+
+#### 4. Chat/Edit Resume
+```http
+POST /api/chat-edit
+Content-Type: application/json
+
+Body:
+{
+  "prompt": "Make my experience more impactful with metrics",
+  "section_key": "experience",
+  "section_data": { ... },
+  "chat_history": [{ "role": "user", "content": "..." }]
+}
+
+Response 200:
+{
+  "updated_section": { ... },
+  "message": "Updated your experience section with action verbs and quantified metrics..."
+}
+```
+
+#### 5. Target Company
+```http
+POST /api/target-company
+Content-Type: application/json
+
+Body:
+{
+  "parsed_json": object,
+  "target": "Full job description text...",
   "job_title": "Software Engineer",
   "company": "Google"
 }
 
-Response:
+Response 200:
 {
-  "skill_gaps": ["Kubernetes", "GraphQL"],
-  "recommended_skills": ["Docker", "AWS"],
-  "content_suggestions": [
+  "missing_keywords": ["kubernetes", "system design", ...],
+  "skill_gaps": [{
+    "skill": "Kubernetes",
+    "current_level": 20,
+    "required_level": 80,
+    "priority": "Critical",
+    "learning_path": {
+      "title": "Kubernetes for Developers",
+      "platform": "Coursera",
+      "url": "https://www.coursera.org/learn/kubernetes",
+      "duration": "3-4 weeks at 5 hrs/week"
+    },
+    "project_suggestion": "Build a microservices app deployed on K8s cluster",
+    "industry_demand": "Required in 90% of cloud-native roles",
+    "youtube_videos": [{ "title", "url", "duration", "channel" }]
+  }],
+  "strengths": ["Strong Python/Flask experience matches requirement"],
+  "weaknesses": ["No cloud infrastructure experience mentioned"],
+  "competitive_edge": ["Unique ML project portfolio sets candidate apart"],
+  "market_insights": { "similar_jobs_analyzed": 5, "data_sources": 3 },
+  "dsa_analysis": { "category": "sde", "platforms": ["LeetCode"], ... },
+  "job_suggestions": [
     {
-      "section": "experience",
-      "suggestion": "Emphasize cloud infrastructure experience"
-    }
-  ],
-  "keywords_to_add": ["scalability", "microservices"],
-  "overall_match_score": 78
+      "title": "Backend Developer",
+      "company": "Stripe",
+      "location": "Remote",
+      "apply_url": "https://remotive.com/...",
+      "match_score": 82,
+      "source": "Remotive",
+      "salary": "$120k-$160k",
+      "posted": "2026-04-10"
+    },
+    // ... 10-15 total results
+  ]
 }
-
-Status Codes:
-  - 200: Success
-  - 500: Server error
 ```
 
-#### 5. Export PDF
+#### 6. Export PDF
 ```http
 POST /api/export-pdf
+Content-Type: application/json
 
-Body:
-{
-  "parsed_json": object
-}
+Body: { parsed_json }
 
-Response:
-  PDF file (binary)
-
-Headers:
-  Content-Type: application/pdf
-  Content-Disposition: attachment; filename=resume.pdf
-
-Status Codes:
-  - 200: Success
-  - 500: PDF generation failed
+Response: PDF binary (Content-Type: application/pdf)
 ```
 
-#### 6. Health Check
+#### 7. Health Check
 ```http
-GET /api/health
-
-Response:
-{
-  "status": "ok",
-  "version": "1.0.0"
-}
-
-Status Codes:
-  - 200: API is running
+GET /health
+Response: { "status": "ok" }
 ```
 
 ---
@@ -753,69 +864,78 @@ CREATE TABLE scores (
 );
 ```
 
-#### `chat_history` (optional)
-```sql
-CREATE TABLE chat_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
-  resume_id UUID REFERENCES resumes(id) ON DELETE CASCADE,
-  section_key VARCHAR(50),
-  messages JSONB NOT NULL, -- Array of {role, content}
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
 ### Storage Buckets
 
 #### `resumes` Bucket
 - Path: `{session_id}/{filename}`
-- Stores original resume files
+- Stores original resume files (PDF/DOCX)
 - Public read access for storage_url generation
 
 ---
 
+## How It Works — Deep Dive
+
+### Multi-Agent AI Architecture
+
+CvAura uses a **multi-agent architecture** where different AI "agents" handle different tasks, all powered by the same Groq Llama-3.3-70b model but with specialized system prompts:
+
+| Agent | Service | Role |
+|-------|---------|------|
+| **Parser Agent** | `parser.py` | Extracts structured JSON from raw resume text |
+| **Scorer Agent** | `scorer.py` | Evaluates resume against rubric, generates feedback |
+| **Suggestion Agent** | `scorer.py` | Generates 6-7 improvement suggestions from scores |
+| **Fixer Agent** | `fixer.py` | Rewrites weak sections (summary, bullets, projects, skills) |
+| **Chat Agent** | `chat.py` | Interactive editing with conversation context |
+| **Recommendation Agent** | `targeting.py` | Skill gap analysis with learning paths |
+| **Skill Extractor Agent** | `scraper.py` | Extracts skills from scraped job descriptions |
+
+### Job Search — How Queries Are Expanded
+
+When a user searches for "Software Engineer at Google":
+
+```
+Original query: "Software Engineer"
+    ↓
+Query expansion generates 5-6 variations:
+  1. "Software Engineer" (original)
+  2. "Backend Developer" (role synonym)
+  3. "Full Stack Developer" (role synonym)
+  4. "Software Developer" (role synonym)
+  5. "Python Developer" (skill-based, from resume)
+  6. "React Developer" (skill-based, from resume)
+    ↓
+Each variation searched across 3 APIs:
+  - Remotive: 10 results × 6 queries = ~60 results
+  - Arbeitnow: 10 results × 6 queries = ~60 results
+  - LinkedIn: 10 results × 2 queries = ~20 results
+    ↓
+Total: ~140 raw results → deduplicate → score → top 15
+```
+
+### Scoring Rubric Details
+
+**Fresher-specific checks:**
+- Projects scored by: tech stack diversity, real-world applicability, problem complexity
+- Hackathons scored by: tier (national > college), placement (win > participation)
+- Penalize if 0% of bullets contain quantified metrics
+- Don't penalize for empty experience section
+
+**Experienced-specific checks:**
+- Each bullet checked for: specific numbers, impact metrics, scope indicators
+- Score 90+ only if >70% of bullets contain quantified results
+- Score <50 if bullets are purely descriptive without metrics
+- Leadership requires explicit team size, budget, or organizational scope
+
+### Rate Limit Management
+
+The Groq free tier allows ~30 requests/minute. CvAura manages this with:
+- **Retry with exponential backoff** (2^attempt seconds)
+- **Intentional delays** between sequential LLM calls (1s in fixer.py)
+- **Minimal calls** — scoring uses 2 calls, fixing uses 3-4 calls
+
+---
+
 ## Development Guide
-
-### Code Structure
-
-#### Frontend (`aura-resume-studio/src`)
-
-**Components**:
-- `LandingPage.tsx` - Home page with intro
-- `Workspace.tsx` - Main working area
-- `DocumentViewer.tsx` - PDF preview
-- `ChatBubble.tsx`, `ChatTab.tsx` - Chat UI
-- `ScoreCard.tsx`, `ScoreTab.tsx` - Scoring display
-- `RecommendationsTab.tsx` - Company targeting results
-- `NavLink.tsx`, `TiltCard.tsx` - UI components
-
-**Context**:
-- `AppContext.tsx` - Global app state (resume data, scores, etc.)
-
-**Hooks**:
-- `use-mobile.tsx` - Mobile detection
-- `use-toast.ts` - Toast notifications
-
-**Library**:
-- `api.ts` - API client functions
-- `utils.ts` - Utility functions
-- `mock-data.ts` - Development mock data
-
-#### Backend (`backend`)
-
-**Services**:
-- `parser.py` - Resume text extraction and structuring (Groq)
-- `scorer.py` - Scoring algorithm implementation
-- `chat.py` - AI chat for editing (Groq)
-- `targeting.py` - Company/job analysis (Groq)
-- `pdf_generator.py` - PDF export (ReportLab)
-- `scraper.py` - Job description scraping (Playwright)
-
-**Core**:
-- `main.py` - FastAPI routes and endpoints
-- `schemas.py` - Pydantic models for validation
-- `db.py` - Supabase client initialization
 
 ### Adding a New Feature
 
@@ -826,13 +946,18 @@ class NewFeatureRequest(BaseModel):
     param1: str
     param2: Any
 
-# 2. Create service file in services/new_feature.py
-def process_feature(data: dict):
+class NewFeatureResponse(BaseModel):
+    result: str
+
+# 2. Create service in services/new_feature.py
+def process_feature(data: dict) -> dict:
     # Your logic
-    return result
+    return {"result": "..."}
 
 # 3. Add endpoint in main.py
-@app.post("/api/new-feature")
+from services.new_feature import process_feature
+
+@app.post("/api/new-feature", response_model=NewFeatureResponse)
 async def new_feature(body: NewFeatureRequest):
     result = process_feature(body.dict())
     return result
@@ -841,175 +966,83 @@ async def new_feature(body: NewFeatureRequest):
 #### 2. Frontend
 ```typescript
 // 1. Add API function in lib/api.ts
-export async function callNewFeature(data: any) {
-  const response = await fetch(`${API_BASE}/api/new-feature`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
+async newFeature(data: any) {
+    const res = await fetch(`${API_BASE}/api/new-feature`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed");
+    return res.json();
+},
 
-// 2. Use in component
-const [result, setResult] = useState(null);
+// 2. Add state in AppContext.tsx if needed
+const [featureData, setFeatureData] = useState(null);
 
-const handleNewFeature = async () => {
-  const res = await callNewFeature(data);
-  setResult(res);
-};
-
-// 3. Render in JSX
-return <div>{result && <p>{result.message}</p>}</div>;
+// 3. Use in component
+const result = await api.newFeature(data);
 ```
 
 ### Running Tests
-
 ```bash
-# Frontend tests
+# Frontend type check
 cd aura-resume-studio
-npm run test          # One-time
-npm run test:watch    # Watch mode
+npx tsc --noEmit
 
-# Backend tests (if configured)
+# Backend API test
 cd backend
-python -m pytest
-```
-
-### Linting & Formatting
-
-```bash
-# Frontend
-cd aura-resume-studio
-npm run lint          # Check for lint errors
-
-# Python formatting (optional)
-cd backend
-black *.py            # Format files
-pylint *.py           # Lint
+python test_grok.py
 ```
 
 ---
 
 ## Deployment Guide
 
-### Frontend Deployment (Vercel)
-
-#### 1. Connect Repository
+### Frontend (Vercel)
 ```bash
 cd aura-resume-studio
 npm install -g vercel
 vercel login
 vercel
 ```
-
-#### 2. Configure Environment Variables
-In Vercel Dashboard:
-- Settings → Environment Variables
-- Add: `VITE_API_URL=https://your-backend-url.com`
-
-#### 3. Automatic Deployment
-- Vercel auto-deploys on push to main branch
 - Build command: `npm run build`
 - Output directory: `dist`
+- Environment variable: `VITE_API_URL=https://your-backend-url.com`
 
-### Backend Deployment (Railway)
-
-#### 1. Create Docker Image
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-#### 2. Deploy to Railway
+### Backend (Railway)
 ```bash
-# Install Railway CLI
-npm i -g @railway/cli
-
-# Login and deploy
-railway login
 cd backend
+npm i -g @railway/cli
+railway login
 railway up
 ```
+- Environment variables: `SUPABASE_URL`, `SUPABASE_KEY`, `GROQ_API_KEY`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port 8000`
 
-#### 3. Set Environment Variables in Railway
-- SUPABASE_URL
-- SUPABASE_KEY
-- GROQ_API_KEY
-
-### Alternative: Deploy to Render
-
-#### 1. Create `render.yaml`
-```yaml
-services:
-  - type: web
-    name: cvaura-backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
-    envVars:
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_KEY
-        sync: false
-      - key: GROQ_API_KEY
-        sync: false
+### Dockerfile (Alternative)
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
-
-#### 2. Deploy
-- Push to GitHub
-- Connect repo to Render.com
-- Auto-deploys on push
 
 ---
 
 ## Environment Variables
 
 ### Backend (.env)
-
 ```bash
-# Supabase Configuration
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key-here
-SUPABASE_SERVICE_KEY=optional-service-key
-
-# Groq API (Llama-3.1-70b-versatile)
 GROQ_API_KEY=your-groq-api-key
-
-# Optional: YouTube API
-YOUTUBE_API_KEY=youtube-api-key
-
-# Optional: Database (if not using Supabase)
-DATABASE_URL=postgresql://user:password@localhost/dbname
-
-# Server Configuration
-PORT=8000
-ENVIRONMENT=development
 ```
 
 ### Frontend (.env.local)
-
 ```bash
-# API Configuration
 VITE_API_URL=http://localhost:8000
-
-# Optional: Add other API keys if needed
-VITE_GROQ_API_KEY=optional
-```
-
-### Production (.env.production)
-
-```bash
-# Backend
-VITE_API_URL=https://your-production-backend-url.com
-
-# Frontend deployed on Vercel, backend on Railway
 ```
 
 ---
@@ -1018,215 +1051,33 @@ VITE_API_URL=https://your-production-backend-url.com
 
 ### Frontend Issues
 
-#### 1. "Cannot find module '@/...'"
-**Solution**: Check `tsconfig.json` alias settings
-```json
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-```
-
-#### 2. CORS errors when calling backend
-**Solution**: Check backend CORS settings in `main.py`
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Change to specific domain in production
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
-
-#### 3. Vite dev server won't start
-**Solution**: Clear cache and reinstall
-```bash
-rm -rf node_modules .vite package-lock.json
-npm install
-npm run dev
-```
+| Problem | Solution |
+|---------|----------|
+| Cannot find module `@/...` | Check `tsconfig.json` paths: `"@/*": ["./src/*"]` |
+| CORS errors | Verify backend CORS in `main.py` allows `"*"` |
+| Vite won't start | `rm -rf node_modules .vite && npm install` |
+| Theme toggle not working | Check `document.documentElement.classList` has `dark` |
 
 ### Backend Issues
 
-#### 1. "ModuleNotFoundError: No module named 'fastapi'"
-**Solution**: Activate virtual environment and install dependencies
-```bash
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install -r requirements.txt
-```
+| Problem | Solution |
+|---------|----------|
+| `ModuleNotFoundError` | Activate venv: `venv\Scripts\activate` then `pip install -r requirements.txt` |
+| Supabase connection fails | Verify `SUPABASE_URL` and `SUPABASE_KEY` in `.env` |
+| Groq API 429 (rate limit) | Wait 60 seconds — free tier is 30 req/min |
+| Fix All takes >30 seconds | Normal — 3-4 sequential LLM calls with delays |
+| Job search returns 0 results | Check outbound internet access to `remotive.com`, `arbeitnow.com` |
+| `'int' object is not subscriptable` | Arbeitnow API format changed — safe to ignore, other sources still work |
+| PDF generation fails | `pip install reportlab==4.0.7` |
 
-#### 2. Supabase connection failed
-**Solution**: Verify environment variables
-```bash
-# Check .env file
-echo $SUPABASE_URL
-echo $SUPABASE_KEY
-```
+### Common Errors
 
-#### 3. Groq API errors
-**Solution**: Verify API key and quota
-- Check key at https://console.groq.com/keys
-- Ensure account has active API access
-- Monitor rate limits (1000 requests/minute)
-- Check available tokens in Groq console
-
-#### 4. PDF generation fails
-**Solution**: Ensure ReportLab is installed
-```bash
-pip install reportlab==4.0.7
-```
-
-#### 5. Timeout when processing large PDFs
-**Solution**: Increase timeout in production
-- Vercel: Increase timeout limit
-- Railway: Increase request timeout
-- Use async processing for large files
-
-### Database Issues
-
-#### 1. "Could not connect to database"
-**Solution**: Verify Supabase connection
-```bash
-# Test with psql
-psql -U postgres -h your-host -d your-db
-```
-
-#### 2. Tables don't exist
-**Solution**: Run migration script
-```bash
-# In Supabase SQL editor, paste migration.sql content
-# Or via psql:
-psql -U postgres -d your_db < migration.sql
-```
-
-#### 3. Storage bucket not accessible
-**Solution**: Check bucket permissions in Supabase
-- Navigate to Storage → resumes bucket
-- Verify public read is enabled
-- Check policy permissions
-
-### Common Errors & Solutions
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `ValueError: invalid literal for int()` | Score calculation error | Check user_type is valid ("fresher"/"experienced") |
-| `FileNotFoundError: PDF not found` | File upload failed | Check Supabase storage bucket exists |
-| `json.JSONDecodeError` | Invalid JSON response | Check Groq API response format |
-| `Connection refused` | Backend not running | Start backend with `uvicorn main:app --reload` |
-| `401 Unauthorized` | Invalid API key | Verify GROQ_API_KEY or SUPABASE_KEY |
-
----
-
-## Performance Optimization
-
-### Frontend
-```typescript
-// Use React.memo for expensive components
-export const ScoreCard = React.memo(({ score }) => {
-  return <div>{score}</div>;
-});
-
-// Use useMemo for expensive calculations
-const memoizedScore = useMemo(() => calculateScore(resume), [resume]);
-
-// Use code splitting
-const ChatTab = React.lazy(() => import('./ChatTab'));
-```
-
-### Backend
-```python
-# Use caching for frequent operations
-from functools import lru_cache
-
-@lru_cache(maxsize=128)
-def get_scoring_rules(user_type: str):
-    return load_scoring_config(user_type)
-
-# Use async for I/O operations
-@app.post("/api/upload")
-async def upload_resume(file: UploadFile):
-    # Async file processing
-    pass
-```
-
-### Database
-```sql
--- Index frequently queried columns
-CREATE INDEX idx_sessions_user_type ON sessions(user_type);
-CREATE INDEX idx_resumes_session_id ON resumes(session_id);
-CREATE INDEX idx_scores_resume_id ON scores(resume_id);
-```
-
----
-
-## Security Considerations
-
-### Authentication (Recommended for Production)
-```python
-# Add JWT authentication
-from fastapi.security import HTTPBearer, HTTPAuthCredential
-
-security = HTTPBearer()
-
-@app.post("/api/upload")
-async def upload_resume(credentials: HTTPAuthCredential = Depends(security)):
-    # Verify token
-    # Process upload
-    pass
-```
-
-### Rate Limiting
-```python
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-
-@app.post("/api/upload")
-@limiter.limit("5/minute")
-async def upload_resume(request: Request):
-    pass
-```
-
-### Input Validation
-- Always use Pydantic schemas
-- Validate file types and sizes
-- Sanitize user input
-- Check SQL injection vulnerabilities
-
-### Environment Secrets
-- Never commit `.env` files
-- Use `.env.example` template
-- Rotate API keys regularly
-- Monitor API usage
-
----
-
-## Contributing Guidelines
-
-1. Create feature branch: `git checkout -b feature/your-feature`
-2. Make changes and commit: `git commit -m "Add feature"`
-3. Push to branch: `git push origin feature/your-feature`
-4. Create Pull Request with description
-5. Wait for review and merge
-
----
-
-## Support & Contact
-
-For issues, questions, or suggestions:
-- Create GitHub issue
-- Contact development team
-- Email support
-
----
-
-## License
-
-This project is licensed under the MIT License. See LICENSE file for details.
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `json.JSONDecodeError` | LLM returned non-JSON | Retry — the prompt enforces JSON output |
+| `Connection refused` | Backend not running | `uvicorn main:app --reload --port 8000` |
+| `401 Unauthorized` | Invalid API key | Verify `GROQ_API_KEY` at https://console.groq.com |
+| `FileNotFoundError` | Supabase bucket missing | Create `resumes` bucket in Supabase Storage |
 
 ---
 
@@ -1234,41 +1085,12 @@ This project is licensed under the MIT License. See LICENSE file for details.
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0.0 | 2024-04-08 | Initial release |
-| 1.1.0 | TBD | Auth system |
-| 1.2.0 | TBD | Advanced analytics |
-| 2.0.0 | TBD | Mobile app |
+| 1.0.0 | 2026-04-06 | Initial release — upload, score, chat, target, PDF export |
+| 1.1.0 | 2026-04-11 | UI overhaul — WebGL Orb, InfiniteMenu, FlowingMenu, theme toggle |
+| 2.0.0 | 2026-04-12 | **Major backend upgrade** — rubric scoring, suggestions, Fix All AI, job search (Remotive + Arbeitnow + LinkedIn), before/after comparison, theme-aware hero |
 
 ---
 
-## Roadmap
-
-### Phase 1 (Current)
-- ✅ Resume upload & parsing
-- ✅ Scoring algorithm
-- ✅ AI chat editing
-- ✅ Company targeting
-
-### Phase 2 (Q2 2024)
-- 🔄 User authentication
-- 🔄 Resume history & versioning
-- 🔄 Batch resume processing
-- 🔄 Advanced analytics dashboard
-
-### Phase 3 (Q3 2024)
-- 🔄 Mobile application
-- 🔄 Integration with job boards
-- 🔄 Real-time collaboration
-- 🔄 Resume templates library
-
-### Phase 4 (Q4 2024)
-- 🔄 AI mock interviews
-- 🔄 LinkedIn optimization
-- 🔄 Cover letter generation
-- 🔄 Enterprise features
-
----
-
-**Last Updated**: April 8, 2026  
+**Last Updated**: April 12, 2026  
 **Status**: Active Development  
 **Maintained By**: Development Team

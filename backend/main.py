@@ -7,12 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from db import get_supabase
-from schemas import ScoreRequest, ScoreResponse, ChatRequest, ChatResponse, TargetRequest
+from schemas import ScoreRequest, ScoreResponse, ChatRequest, ChatResponse, TargetRequest, FixAllRequest, FixAllResponse
 from services.parser import extract_text_from_pdf, extract_text_from_docx, structure_resume
 from services.scorer import compute_score
 from services.chat import chat_edit
 from services.targeting import analyze_target
 from services.pdf_generator import generate_resume_pdf
+from services.fixer import fix_all_resume
 
 app = FastAPI(title="CvAura API", version="1.0.0")
 
@@ -125,7 +126,24 @@ async def target_company(body: TargetRequest):
     return result
 
 
-# ── 5. PDF EXPORT ───────────────────────────────────────────────────────────
+# ── 5. FIX ALL WITH AI ─────────────────────────────────────────────────────
+
+@app.post("/api/fix-all", response_model=FixAllResponse)
+async def fix_all_endpoint(body: FixAllRequest):
+    if body.user_type not in ("fresher", "experienced"):
+        raise HTTPException(400, "user_type must be 'fresher' or 'experienced'")
+    
+    result = fix_all_resume(
+        parsed_json=body.parsed_json,
+        user_type=body.user_type,
+        score_parameters=body.score_parameters,
+        suggestions=body.suggestions,
+    )
+    
+    return FixAllResponse(**result)
+
+
+# ── 6. PDF EXPORT ───────────────────────────────────────────────────────────
 
 @app.post("/api/export-pdf")
 async def export_pdf(parsed_json: dict):

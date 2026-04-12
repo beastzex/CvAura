@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from openai import OpenAI
 from youtubesearchpython import VideosSearch
 from services.scraper import scrape_and_analyze
+from services.job_search import search_jobs
 
 client = OpenAI(
     api_key=os.environ["GROQ_API_KEY"],
@@ -41,6 +42,13 @@ def _resume_to_text(parsed: dict) -> str:
         parts.append(cert.get("name", ""))
     return " ".join(filter(None, parts))
 
+def _extract_skills_list(parsed: dict) -> list[str]:
+    """Extract all skills from parsed resume for job matching"""
+    skills = list(parsed.get("skills", []))
+    for proj in parsed.get("projects", []):
+        skills.extend(proj.get("tech_stack", []))
+    return list(set(skills))
+
 def _extract_missing_keywords(resume_text: str, jd_text: str, top_n: int = 15) -> list[str]:
     vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), max_features=200)
     vectorizer.fit([jd_text])
@@ -66,8 +74,7 @@ def _gemini_recommendations(resume_text: str, jd_text: str, missing_keywords: li
     real_reqs = scraped_data.get("real_job_requirements", {})
     dsa_recs = scraped_data.get("dsa_recommendations")
     
-    prompt = f"""
-You are a career advisor analyzing a resume against REAL job market data.
+    prompt = f"""You are a senior career advisor with expertise in technical hiring. Analyze this resume against REAL job market data with precision.
 
 REAL JOB REQUIREMENTS (from {scraped_data.get('analysis_sources', 1)} actual job postings):
 - Required Skills: {json.dumps(real_reqs.get('required_skills', []))}
@@ -80,6 +87,20 @@ Missing keywords from TF-IDF analysis: {json.dumps(missing_keywords)}
 
 {f"DSA/CS FUNDAMENTALS ALERT: This is a {dsa_recs['category']} role. DSA skills are MANDATORY. Current status: {dsa_recs['current_status']}. Recommendation: {dsa_recs['recommendation']}" if dsa_recs else ""}
 
+IMPORTANT RULES FOR LEARNING PATHS:
+1. Provide REAL, VERIFIED course URLs only. Use these known platforms:
+   - Coursera: https://www.coursera.org/learn/[course-slug]
+   - Udemy: https://www.udemy.com/course/[course-slug]/
+   - freeCodeCamp: https://www.freecodecamp.org/learn/[path]
+   - LeetCode: https://leetcode.com/problemset/
+   - HackerRank: https://www.hackerrank.com/domains/[domain]
+   - MIT OCW: https://ocw.mit.edu/courses/
+   - Khan Academy: https://www.khanacademy.org/computing/
+2. If you're not sure of the exact URL, use the platform's main search page
+3. Duration estimates must be realistic (e.g., "2-4 weeks at 5 hrs/week")
+4. Order learning paths by priority — most critical gaps first
+5. Each skill gap assessment must be backed by specific evidence from the JD
+
 Return ONLY valid JSON (no markdown) with this structure:
 {{
   "missing_keywords": ["..."],
@@ -90,13 +111,13 @@ Return ONLY valid JSON (no markdown) with this structure:
       "required_level": 0-100,
       "priority": "Critical | High | Medium | Low",
       "learning_path": {{
-        "title": "...",
-        "platform": "Coursera | YouTube | Udemy | LeetCode | HackerRank",
-        "url": "https://...",
-        "duration": "..."
+        "title": "Course/resource name",
+        "platform": "Coursera | YouTube | Udemy | LeetCode | freeCodeCamp",
+        "url": "https://verified-url-to-course",
+        "duration": "Realistic time estimate"
       }},
-      "project_suggestion": "One-sentence project idea to learn this skill.",
-      "industry_demand": "Why this skill is critical based on real job postings"
+      "project_suggestion": "One specific project idea with tech stack to demonstrate this skill.",
+      "industry_demand": "Why this skill is critical — cite specific JD requirements"
     }}
   ],
   "dsa_requirements": {{
@@ -137,6 +158,7 @@ RESUME:
 
 async def analyze_target(parsed: dict, target: str, job_title: str = "", company: str = "") -> dict:
     resume_text = _resume_to_text(parsed)
+    resume_skills = _extract_skills_list(parsed)
     missing = _extract_missing_keywords(resume_text, target)
     
     # Scrape real job data from LinkedIn and job boards
@@ -150,6 +172,17 @@ async def analyze_target(parsed: dict, target: str, job_title: str = "", company
         videos = _search_youtube_videos(gap["skill"])
         gap["youtube_videos"] = videos
     
+    # Search for real job postings the candidate can apply to
+    job_suggestions = []
+    if job_title:
+        job_suggestions = await search_jobs(
+            job_title=job_title, 
+            company=company, 
+            resume_skills=resume_skills,
+            resume_text=resume_text,
+            max_results=15
+        )
+    
     # Merge scraped data with recommendations
     return {
         **recommendations,
@@ -160,5 +193,6 @@ async def analyze_target(parsed: dict, target: str, job_title: str = "", company
             "similar_profiles": scraped_data.get("similar_profiles", []),
             "real_requirements": scraped_data.get("real_job_requirements", {})
         },
-        "dsa_analysis": scraped_data.get("dsa_recommendations")
+        "dsa_analysis": scraped_data.get("dsa_recommendations"),
+        "job_suggestions": job_suggestions
     }

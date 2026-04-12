@@ -1,6 +1,6 @@
-# CvAura - Resume Optimization Platform
+# CvAura — AI-Powered Resume Optimization Platform
 
-An AI-powered full-stack application that helps job seekers analyze, score, and optimize their resumes.
+An intelligent full-stack application that analyzes, scores, fixes, and optimizes resumes using multi-agent AI, real-time job market data, and advanced ATS evaluation.
 
 ## Quick Start
 
@@ -39,67 +39,93 @@ uvicorn main:app --reload
 
 ## 📚 Documentation
 
-See [DOCUMENTATION.md](./DOCUMENTATION.md) for:
-- Complete project overview
-- Technical architecture
-- Installation guide
-- API documentation
-- Database schema
-- Deployment instructions
-- Troubleshooting guide
+See [DOCUMENTATION.md](./DOCUMENTATION.md) for complete technical docs.
 
 ## 🏗️ Project Structure
 
 ```
 cvaura/
 ├── aura-resume-studio/     # React + Vite frontend
+│   ├── src/
+│   │   ├── components/     # UI components (Landing, Workspace, Score, Recommendations)
+│   │   ├── context/        # Global state (AppContext)
+│   │   └── lib/            # API client, utilities
 ├── backend/                # FastAPI backend
-├── Myvenv/                 # Python virtual env
-└── DOCUMENTATION.md        # Full documentation
+│   ├── services/
+│   │   ├── parser.py       # Resume extraction & AI structuring
+│   │   ├── scorer.py       # Multi-parameter ATS scoring with rubrics
+│   │   ├── fixer.py        # "Fix All with AI" engine
+│   │   ├── chat.py         # AI-powered section editing
+│   │   ├── targeting.py    # Company targeting & learning paths
+│   │   ├── job_search.py   # Real-time multi-source job search
+│   │   ├── scraper.py      # LinkedIn & job board scraping
+│   │   └── pdf_generator.py# Professional PDF export
+│   ├── main.py             # FastAPI endpoints
+│   ├── schemas.py          # Pydantic models
+│   └── db.py               # Supabase client
+├── DOCUMENTATION.md        # Full technical documentation
+└── README.md               # This file
 ```
 
 ## 🎯 Key Features
 
-- **Resume Upload & Parsing**: PDF/DOCX support with AI structuring
-- **Smart Scoring**: Multi-parameter resume evaluation (0-100)
-- **AI Chat Editor**: Natural language resume editing suggestions
-- **Company Targeting**: Job description analysis and recommendations
-- **PDF Export**: Generate professional optimized resumes
+### Core Intelligence
+- **Resume Upload & Parsing** — PDF/DOCX support with AI-powered structuring via Groq Llama-3.3-70b
+- **Advanced ATS Scoring** — Multi-parameter evaluation (0-100) with detailed rubrics for freshers and experienced professionals. Each parameter includes reasoning, feedback, and 6-7 actionable improvement suggestions
+- **Fix All with AI** — One-click AI-powered resume overhaul that rewrites weak sections (summary, experience bullets, projects, skills) with before/after comparison view and PDF download
+- **AI Chat Editor** — Natural language conversation for section-specific resume editing with context-aware suggestions
+
+### Targeting & Market Intelligence
+- **Company Targeting** — Paste a job description + company name → get TF-IDF keyword gap analysis, skill gaps with verified learning paths (Coursera, Udemy, freeCodeCamp, LeetCode), and YouTube tutorials
+- **Real-Time Job Suggestions** — Searches Remotive, Arbeitnow, and LinkedIn simultaneously using 5-6 query variations. Returns 10-15 ranked jobs with direct apply links, match scores, and source badges
+- **DSA & CS Fundamentals Detection** — Auto-detects software roles and flags missing competitive programming/DSA skills with specific platform recommendations
+
+### Design & UX
+- **Theme-Aware Hero** — Light mode: massive typographic hero with "Get Started" button. Dark mode: 3D WebGL Orb with drag-drop upload
+- **3D Feature Showcase** — WebGL-based interactive globe (InfiniteMenu) for feature display
+- **Glassmorphism UI** — Modern design with View Transition API theme toggle, Framer Motion animations, and responsive layouts
 
 ## 🛠️ Tech Stack
 
-| Layer | Tech |
-|-------|------|
-| Frontend | React 18 + TypeScript + Vite + Tailwind |
-| Backend | FastAPI + Python 3.11 |
-| Database | Supabase (PostgreSQL) |
-| AI | Groq Llama-3.1-70b-versatile (1000 req/min) |
-| Hosting | Vercel + Railway |
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS + Framer Motion |
+| Backend | FastAPI + Python 3.11 + Pydantic |
+| AI/LLM | Groq Llama-3.3-70b-versatile (multi-agent architecture) |
+| Database | Supabase (PostgreSQL + Storage) |
+| Job Search | Remotive API + Arbeitnow API + LinkedIn Public Scraping |
+| NLP | scikit-learn TF-IDF, YouTube Search API |
+| PDF | ReportLab (generation) + PyMuPDF (parsing) |
+| WebGL | gl-matrix + custom shaders (Orb, InfiniteMenu) |
+| Hosting | Vercel (frontend) + Railway/Render (backend) |
 
 ## 📖 Common Commands
 
 ### Frontend
 ```bash
-npm run dev          # Start dev server
+npm run dev          # Start dev server (port 8080)
 npm run build        # Production build
 npm run preview      # Preview build
-npm run test         # Run tests
-npm run lint         # Lint code
+npx tsc --noEmit     # Type check
 ```
 
 ### Backend
 ```bash
-uvicorn main:app --reload              # Dev server
-python -m pytest                        # Run tests
-black *.py                              # Format code
+uvicorn main:app --reload --port 8000    # Dev server
+python -m pytest                          # Run tests
 ```
 
-## 🚢 Deployment
+## 🔌 API Endpoints
 
-- **Frontend**: Deploy to Vercel (auto-deploys from main)
-- **Backend**: Deploy to Railway or Render
-
-See [DOCUMENTATION.md - Deployment Guide](./DOCUMENTATION.md#deployment-guide) for detailed steps.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/upload` | Upload & parse resume (PDF/DOCX) |
+| `POST` | `/api/score` | ATS score with rubric-based reasoning + suggestions |
+| `POST` | `/api/fix-all` | AI rewrites all weak sections, returns before/after |
+| `POST` | `/api/chat-edit` | Natural language section editing |
+| `POST` | `/api/target-company` | Company targeting + skill gaps + 15 job suggestions |
+| `POST` | `/api/export-pdf` | Generate professional PDF |
+| `GET`  | `/health` | Health check |
 
 ## 🔧 Environment Variables
 
@@ -117,27 +143,17 @@ VITE_API_URL=http://localhost:8000
 
 ## 🐛 Troubleshooting
 
-**Frontend won't connect to backend?**
-- Ensure backend is running on port 8000
-- Check VITE_API_URL in .env.local
-- Check CORS settings in backend/main.py
+| Problem | Solution |
+|---------|----------|
+| Frontend won't connect to backend | Verify backend is running on port 8000, check `VITE_API_URL` |
+| Supabase connection fails | Verify `SUPABASE_URL` and `SUPABASE_KEY`, run migration.sql |
+| Groq API errors | Verify `GROQ_API_KEY` at https://console.groq.com |
+| Job search returns 0 results | Check internet connection — Remotive/Arbeitnow APIs need outbound access |
+| Fix All takes too long | Normal — makes 3-4 sequential LLM calls with rate-limit delays |
 
-**Supabase connection fails?**
-- Verify SUPABASE_URL and SUPABASE_KEY
-- Check if tables exist (run migration.sql)
-
-**Groq API errors?**
-- Verify GROQ_API_KEY is correct
-- Check API is enabled at https://console.groq.com
-- Verify rate limits (1000 requests/minute)
-
-See [DOCUMENTATION.md - Troubleshooting](./DOCUMENTATION.md#troubleshooting) for more help.
-
-## 📞 Support
-
-For detailed information, see [DOCUMENTATION.md](./DOCUMENTATION.md)
+See [DOCUMENTATION.md](./DOCUMENTATION.md) for full troubleshooting guide.
 
 ---
 
 **Status**: Active Development  
-**Last Updated**: April 8, 2026
+**Last Updated**: April 12, 2026
