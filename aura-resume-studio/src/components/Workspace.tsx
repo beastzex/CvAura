@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, BarChart3, Lightbulb, Sun, Moon, Sparkles, GripVertical } from "lucide-react";
+import { MessageSquare, BarChart3, Lightbulb, Sparkles, GripVertical } from "lucide-react";
+import { ToggleTheme } from "@/components/ui/toggle-theme";
 import { useApp } from "@/context/AppContext";
 import DocumentViewer from "@/components/DocumentViewer";
 import ChatTab from "@/components/ChatTab";
@@ -16,7 +17,7 @@ const tabs = [
 type TabId = (typeof tabs)[number]["id"];
 
 const Workspace: React.FC = () => {
-  const { isDark, toggleTheme, fileName, userType } = useApp();
+  const { isDark, fileName, userType } = useApp();
   const [activeTab, setActiveTab] = useState<TabId>("score");
   const [leftWidth, setLeftWidth] = useState(55);
   const [dragging, setDragging] = useState(false);
@@ -54,12 +55,7 @@ const Workspace: React.FC = () => {
             {userType}
           </span>
         </div>
-        <button
-          onClick={toggleTheme}
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
+        <ToggleTheme className="text-muted-foreground" />
       </header>
 
       {/* Split Panes */}

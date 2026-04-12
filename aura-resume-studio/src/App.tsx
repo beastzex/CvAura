@@ -4,7 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppProvider } from "@/context/AppContext";
+import PageLayout from "@/components/PageLayout";
 import About from "./pages/About.tsx";
+import Contact from "./pages/Contact.tsx";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -19,7 +21,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/about" element={<PageLayout><About /></PageLayout>} />
+            <Route path="/contact" element={<PageLayout><Contact /></PageLayout>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -29,4 +32,6 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
+export default App;      
+
+

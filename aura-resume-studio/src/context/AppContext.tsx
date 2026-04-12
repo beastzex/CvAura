@@ -40,15 +40,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [userType, setUserType] = useState<UserType | null>(null);
   const [uploaded, setUploaded] = useState(false);
   const [fileName, setFileName] = useState("");
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) return saved === "dark";
+    return true; // default dark
+  });
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [scoreData, setScoreData] = useState<ScoreData | null>(null);
 
+  // Sync isDark with the document's dark class (set by ToggleTheme component)
   useEffect(() => {
+    // Set initial class
     document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
 
-  const toggleTheme = () => setIsDark((p) => !p);
+    const observer = new MutationObserver(() => {
+      const hasDark = document.documentElement.classList.contains("dark");
+      setIsDark(hasDark);
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleTheme = () => {
+    const newVal = !isDark;
+    setIsDark(newVal);
+    document.documentElement.classList.toggle("dark", newVal);
+    localStorage.setItem("theme", newVal ? "dark" : "light");
+  };
 
   return (
     <AppContext.Provider value={{ userType, setUserType, uploaded, setUploaded, fileName, setFileName, isDark, toggleTheme, resumeData, setResumeData, scoreData, setScoreData }}>
