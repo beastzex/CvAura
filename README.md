@@ -1,5 +1,8 @@
 # CvAura — AI-Powered Resume Optimization Platform
 
+
+## Deployed Link : cvaura.vercel.app
+
 An intelligent full-stack application that analyzes, scores, fixes, and optimizes resumes using multi-agent AI, real-time job market data, and advanced ATS evaluation.
 
 ## Quick Start
