@@ -253,52 +253,8 @@ const LandingPage: React.FC = () => {
         </section>
       )}
 
-      {/* How It Works */}
-      <section className={`px-4 py-20 ${isDark ? 'bg-[#09090b]' : 'bg-secondary/30'}`}>
-        <div className="mx-auto max-w-3xl text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-2xl font-bold text-foreground sm:text-3xl"
-          >
-            How <span className="gradient-text">CvAura</span> Works
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="mt-3 text-sm text-muted-foreground max-w-lg mx-auto"
-          >
-            Upload your resume, choose your career stage, and instantly get AI-driven insights, scores, and actionable recommendations — all in one workspace.
-          </motion.p>
-        </div>
-
-        {/* Steps */}
-        <div className="mx-auto max-w-4xl grid gap-8 sm:grid-cols-3 mb-20">
-          {[
-            { step: "01", title: "Upload", desc: "Drag & drop your PDF or DOCX resume." },
-            { step: "02", title: "Analyze", desc: "AI agents score, parse, and identify gaps." },
-            { step: "03", title: "Optimize", desc: "Chat with AI to rewrite and boost your resume." },
-          ].map((item, i) => (
-            <motion.div
-              key={item.step}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="text-center"
-            >
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {item.step}
-              </div>
-              <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-
+      {/* Features Section */}
+      <section className={`px-4 pt-20 pb-0 ${isDark ? 'bg-[#09090b]' : 'bg-secondary/30'}`}>
         {/* Features Grid */}
         <div className="mx-auto max-w-5xl">
           <div style={{ position: 'relative', minHeight: '120px', marginBottom: '24px', paddingTop: '12px' }}>
@@ -318,6 +274,115 @@ const LandingPage: React.FC = () => {
         </div>
         <div style={{ height: '100vh', position: 'relative', width: '100%' }} className="overflow-hidden">
           <InfiniteMenu items={featureItems} scale={1} />
+        </div>
+      </section>
+
+      {/* New How It Works Section */}
+      <section className={`relative px-6 py-32 overflow-hidden ${isDark ? 'bg-background' : 'bg-secondary/20'}`}>
+        {/* Background decorative elements */}
+        {isDark && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+        )}
+        
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="mb-20 text-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center justify-center px-4 py-1.5 mb-6 rounded-full text-sm font-semibold bg-primary/10 text-primary border border-primary/20"
+            >
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Process
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl mb-6"
+            >
+              How it <span className="gradient-text">works ?</span>
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-muted-foreground max-w-2xl mx-auto text-lg sm:text-xl"
+            >
+              Four simple steps to transform your resume and land your dream job.
+            </motion.p>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 relative mt-16">
+            {/* Connecting line for desktop */}
+            <div className={`hidden lg:block absolute top-12 left-[10%] right-[10%] h-[2px] ${isDark ? 'bg-gradient-to-r from-transparent via-primary/30 to-transparent' : 'bg-gradient-to-r from-transparent via-primary/20 to-transparent'} z-0`} />
+            
+            {[
+              { 
+                step: "01", 
+                title: "Upload Document", 
+                desc: "Securely upload your existing PDF or DOCX resume into our smart analyzer.",
+                icon: Upload,
+                delay: 0.1
+              },
+              { 
+                step: "02", 
+                title: "AI Analysis", 
+                desc: "Our agents parse your experience, calculate ATS scores, and find skill gaps.",
+                icon: BarChart3,
+                delay: 0.2
+              },
+              { 
+                step: "03", 
+                title: "Live Optimization", 
+                desc: "Chat with our AI to rewrite bullet points and tailor content to specific jobs.",
+                icon: Bot,
+                delay: 0.3
+              },
+              { 
+                step: "04", 
+                title: "Export & Apply", 
+                desc: "Download a beautifully formatted, ATS-compliant PDF ready for applications.",
+                icon: Sparkles,
+                delay: 0.4
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: item.delay, duration: 0.5 }}
+                className="relative z-10 flex flex-col items-center group"
+              >
+                {/* Number / Icon Shield */}
+                <div className={`relative flex items-center justify-center w-24 h-24 rounded-3xl mb-8 transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-110 ${
+                  isDark 
+                    ? 'bg-[#111116] border border-white/10 shadow-[0_0_40px_-10px_rgba(82,39,255,0.3)]' 
+                    : 'bg-white border border-black/5 shadow-xl'
+                }`}>
+                  <item.icon className="w-10 h-10 text-primary" />
+                  <div className={`absolute -top-3 -right-3 flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold font-mono bg-primary text-white shadow-lg`}>
+                    {i + 1}
+                  </div>
+                </div>
+                
+                {/* Content Card */}
+                <div className={`relative flex flex-col items-center text-center p-8 rounded-3xl w-full h-full transition-all duration-500 group-hover:shadow-2xl ${
+                  isDark 
+                    ? 'bg-[#111116]/80 border border-white/5 group-hover:border-primary/30' 
+                    : 'bg-white/80 border border-black/5 group-hover:border-primary/20 group-hover:bg-white'
+                }`}>
+                  <span className="absolute -top-12 text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-primary/10 to-transparent pointer-events-none select-none">
+                    {item.step}
+                  </span>
+                  <h3 className="text-xl font-bold text-foreground mb-4 relative z-10">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed relative z-10">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
